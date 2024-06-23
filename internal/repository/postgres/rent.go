@@ -133,3 +133,36 @@ func GetDateLastSession(carId int64, db *sqlx.DB) (time.Time, error) {
 
 	return endDate, nil
 }
+
+func SetRentStatus(carId int64, db *sqlx.Tx) error {
+	query := `
+        UPDATE cars
+		SET free_status = FALSE
+		WHERE id = $1;
+        `
+
+	_, err := db.NamedExec(query, carId)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateCarsStatus(db *sqlx.DB) error {
+	query := `
+	UPDATE cars
+	SET free_status = TRUE
+	WHERE id IN (
+		SELECT car_id
+		FROM rental_sessions
+		WHERE end_date = CURRENT_DATE - INTERVAL '3 day'
+	)`
+
+	_, err := db.Exec(query)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

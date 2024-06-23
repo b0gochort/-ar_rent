@@ -27,9 +27,15 @@ func CheckAuto(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 
 		carId = r.URL.Query().Get("car_id")
 
+		// Update car statuses after 3 days from rental
+		err := postgres.UpdateCarsStatus(db)
+		if err != nil {
+			log.Info("postgres.UpdateCarsStatus: ", err.Error())
+		}
+
 		status, err := postgres.GetFreeStatusCar(carId, db)
 		if err != nil {
-			log.Info("Postgres.GetFreeStatusCar err: ", err)
+			log.Info("postgres.GetFreeStatusCar err: ", err)
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -87,7 +93,7 @@ func CreateRentSesion(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
-			log.Info("CreateSessionReq err: ", err)
+			log.Info("createSessionReq err: ", err)
 			w.WriteHeader(http.StatusUnprocessableEntity)
 
 			return
@@ -95,7 +101,7 @@ func CreateRentSesion(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 
 		endDate, err := postgres.GetDateLastSession(req.CarId, db)
 		if err != nil {
-			log.Info("GetDateLastSession err: ", err)
+			log.Info("getDateLastSession err: ", err)
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
@@ -132,6 +138,14 @@ func CreateRentSesion(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 		if err := postgres.CreateRentSession(newRentSession, tx); err != nil {
 			RollbackOrCatchError(tx, log)
 			log.Info("postgres.CreateRentSession err: ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		if err := postgres.SetRentStatus(req.CarId, tx); err != nil {
+			RollbackOrCatchError(tx, log)
+			log.Info("postgres.SetFreeStatus err: ", err)
 			w.WriteHeader(http.StatusInternalServerError)
 
 			return
