@@ -141,7 +141,7 @@ func SetRentStatus(carId int64, db *sqlx.Tx) error {
 		WHERE id = $1;
         `
 
-	_, err := db.NamedExec(query, carId)
+	_, err := db.Query(query, carId)
 	if err != nil {
 		return err
 	}

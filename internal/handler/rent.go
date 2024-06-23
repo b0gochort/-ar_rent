@@ -25,6 +25,11 @@ func CheckAuto(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var carId string
 
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
 		carId = r.URL.Query().Get("car_id")
 
 		// Update car statuses after 3 days from rental
@@ -61,6 +66,11 @@ func GetPrice(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 			res      model.GetPriceResponse
 		)
 
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
 		rentDays = r.URL.Query().Get("rent_days")
 
 		price, err := calculateRentalCost(rentDays)
@@ -90,6 +100,11 @@ func GetPrice(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 func CreateRentSesion(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req model.CreateSessionReq
+
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
 
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
@@ -163,23 +178,26 @@ func GetCarUtilizationReport(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		monthQuery := r.URL.Query().Get("month")
 		yearQuery := r.URL.Query().Get("year")
+
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
 		month, err := strconv.Atoi(monthQuery)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-
 			return
 		}
 
 		year, err := strconv.Atoi(yearQuery)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-
 			return
 		}
 
 		if month == 0 || year == 0 {
 			w.WriteHeader(http.StatusUnprocessableEntity)
-
 			return
 		}
 
