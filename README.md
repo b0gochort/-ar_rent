@@ -13,7 +13,7 @@
 
 1. Склонируйте репозиторий:
     ```sh
-    git clone https://github.com/yourusername/car-rental-service.git
+    git clone git@github.com:b0gochort/car_rent.git
     cd car-rental-service
     ```
 
