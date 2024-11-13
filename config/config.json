@@ -6,8 +6,8 @@
   "postgres": {
     "host" : "127.0.0.1",
     "port" : "5432",
-    "database" : "foj",
-    "user" : "postgres",
+    "database" : "rent",
+    "user" : "user",
     "password" : "qwerty",
     "ssl" : "disable",
     "migration" : "./db/migrations"
