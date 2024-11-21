@@ -3,6 +3,9 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
+
 	"github.com/b0gochort/car-rent/internal/handler"
 	db "github.com/b0gochort/car-rent/internal/repository/postgres"
 	"github.com/b0gochort/car-rent/model"
@@ -13,8 +16,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/spf13/viper"
-	"log/slog"
-	"net/http"
 )
 
 var Config model.Config
@@ -52,13 +53,15 @@ func initRoutes(log *slog.Logger, db *sqlx.DB) http.Handler {
 
 		switch r.URL.Path {
 		case "/get-status":
-			handler.CheckAuto(db, log).ServeHTTP(w, r)
+			handler.CheckCar(db, log).ServeHTTP(w, r)
 		case "/get-price":
 			handler.GetPrice(db, log).ServeHTTP(w, r)
 		case "/create-session":
 			handler.CreateRentSesion(db, log).ServeHTTP(w, r)
 		case "/get-report":
 			handler.GetCarUtilizationReport(db, log).ServeHTTP(w, r)
+		case "/get-cars":
+			handler.GetCars(db, log).ServeHTTP(w, r)
 
 		default:
 			w.WriteHeader(http.StatusNotFound)

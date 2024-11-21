@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/b0gochort/car-rent/internal/repository/postgres"
-	"github.com/b0gochort/car-rent/model"
-	"github.com/jmoiron/sqlx"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/b0gochort/car-rent/internal/repository/postgres"
+	"github.com/b0gochort/car-rent/model"
+	"github.com/jmoiron/sqlx"
 )
 
 const (
@@ -21,7 +22,7 @@ const (
 	discount18Days = 0.15
 )
 
-func CheckAuto(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
+func CheckCar(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var carId string
 
@@ -56,6 +57,46 @@ func CheckAuto(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write([]byte("true"))
+	}
+}
+
+func GetCars(db *sqlx.DB, log *slog.Logger) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var res model.GetCarsResponse
+
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		cars, err := postgres.GetCars(db)
+		if err != nil {
+			log.Error("postgres.GetFreeStatusCar err: ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+		if len(cars) == 0 {
+			w.WriteHeader(http.StatusOK)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte("no cars in database, call to lesha!"))
+
+			return
+		}
+
+		res.Cars = cars
+
+		response, err := json.Marshal(res)
+		if err != nil {
+			log.Error("failed to marshal car utilization report: ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(response)
 	}
 }
 

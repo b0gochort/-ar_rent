@@ -3,9 +3,10 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"time"
+
 	"github.com/b0gochort/car-rent/model"
 	"github.com/jmoiron/sqlx"
-	"time"
 )
 
 func GetFreeStatusCar(id string, db *sqlx.DB) (bool, error) {
@@ -17,6 +18,28 @@ func GetFreeStatusCar(id string, db *sqlx.DB) (bool, error) {
 	}
 
 	return status, nil
+}
+
+func GetCars(db *sqlx.DB) ([]model.Car, error) {
+	var cars []model.Car
+
+	query := `SELECT * FROM cars`
+	rows, err := db.Queryx(query)
+	if err != nil {
+		return nil, fmt.Errorf("db.QueryRow: %w", err)
+	}
+
+	for rows.Next() {
+		var car model.Car
+
+		if err := rows.StructScan(&car); err != nil {
+			return nil, fmt.Errorf("rows.StructScan: %w", err)
+		}
+
+		cars = append(cars, car)
+	}
+
+	return cars, nil
 }
 
 func CreateRentSession(newSession model.RentalSession, tx *sqlx.Tx) error {

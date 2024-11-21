@@ -3,10 +3,11 @@ package model
 import "time"
 
 type Car struct {
-	Id    int64  `json:"id"`
-	Make  string `json:"make"`
-	Model string `json:"model"`
-	Year  int64  `json:"year"`
+	Id         int64  `json:"id" db:"id"`
+	Make       string `json:"make" db:"make"`
+	Model      string `json:"model" db:"model"`
+	Year       int64  `json:"year" db:"year"`
+	FreeStatus bool   `json:"free_status" db:"free_status"`
 }
 
 type RentalSession struct {
@@ -39,4 +40,8 @@ type UtilizationReport struct {
 
 type GetPriceResponse struct {
 	Price int `json:"price"`
+}
+
+type GetCarsResponse struct {
+	Cars []Car `json:"cars"`
 }
